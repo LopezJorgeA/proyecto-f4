@@ -16,7 +16,7 @@ create table public.documents (
   created_at timestamptz not null default now()
 );
 
--- Índice fulltext en español
+-- Índice fulltext 
 create index documents_content_fts_idx
   on public.documents
   using gin (to_tsvector('spanish', content));
