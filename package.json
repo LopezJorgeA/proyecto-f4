@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "seed": "tsx supabase/seed.ts",
+    "test:isolation": "tsx tests/tenant-isolation.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
