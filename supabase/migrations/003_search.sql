@@ -8,6 +8,10 @@
 -- 1. El tenant_id viene como parámetro explícito de la función.
 -- 2. La policy de RLS sobre documents valida tenant_id contra el GUC.
 -- 3. La función no expone ningún path que permita leer otro tenant.
+--
+-- OR semantics: websearch_to_tsquery genera AND por defecto ('a & b').
+-- Convertimos ' & ' → ' | ' para maximizar recall en RAG. Claude puede
+-- ignorar contexto irrelevante, pero no puede inventar contexto faltante.
 create or replace function public.search_tenant_documents(
   p_tenant_id text,
   query_text text,
@@ -19,20 +23,25 @@ stable
 security definer
 set search_path = public
 as $$
+declare
+  or_query tsquery;
 begin
-  -- Setear el GUC en la misma transacción que ejecuta el SELECT.
-  -- El tercer parámetro `true` hace que sea local a esta transacción.
   perform set_config('request.tenant_id', p_tenant_id, true);
+
+  -- Convertir AND → OR: 'polít' & 'horari' → 'polít' | 'horari'
+  or_query := to_tsquery(
+    'spanish',
+    replace(websearch_to_tsquery('spanish', query_text)::text, ' & ', ' | ')
+  );
 
   return query
     select d.*
     from public.documents d
     where d.tenant_id::text = p_tenant_id
-      and to_tsvector('spanish', d.content)
-          @@ websearch_to_tsquery('spanish', query_text)
+      and to_tsvector('spanish', d.content) @@ or_query
     order by ts_rank(
       to_tsvector('spanish', d.content),
-      websearch_to_tsquery('spanish', query_text)
+      or_query
     ) desc
     limit max_results;
 end;

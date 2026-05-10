@@ -1,7 +1,4 @@
-import { config } from 'dotenv';
 import { createSupabaseAdmin } from '../lib/supabase/admin';
-
-config({ path: '.env.local' });
 
 type SeedDocument = {
   content: string;

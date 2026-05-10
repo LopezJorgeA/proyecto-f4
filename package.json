@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx supabase/seed.ts",
-    "test:isolation": "tsx tests/tenant-isolation.test.ts"
+    "seed": "tsx --env-file=.env.local supabase/seed.ts",
+    "test:isolation": "tsx --env-file=.env.local tests/tenant-isolation.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
